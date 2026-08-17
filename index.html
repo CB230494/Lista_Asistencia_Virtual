@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Lista de Asistencia Virtual DPPP">
+  <title>Lista de Asistencia Virtual DPPP</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
+</head>
+<body>
+  <div id="toast" class="toast"></div>
+
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark">DPPP</div>
+      <div>
+        <h1>Lista de Asistencia Virtual DPPP</h1>
+        <p>Dirección de Programas Policiales Preventivos</p>
+      </div>
+    </div>
+    <button id="adminAccessBtn" class="admin-access">Administrador</button>
+  </header>
+
+  <main class="public-wrap">
+    <section class="hero-card">
+      <div class="hero-copy">
+        <span class="eyebrow">REGISTRO VIRTUAL</span>
+        <h2>Lista de Asistencia</h2>
+        <p>Complete los datos solicitados para registrar su participación.</p>
+      </div>
+      <div class="hero-deco" aria-hidden="true"></div>
+    </section>
+
+    <section class="card form-card">
+      <div class="section-head">
+        <div><span class="section-num">01</span><h3>Agregar registro</h3></div>
+        <p>Los datos se guardan directamente en la hoja institucional.</p>
+      </div>
+
+      <form id="attendanceForm" novalidate>
+        <div class="grid3">
+          <label>Nombre <span>*</span>
+            <input name="nombre" maxlength="140" required placeholder="Nombre completo">
+          </label>
+          <label>Cédula de Identidad
+            <input name="cedula" maxlength="40" placeholder="Número de identificación">
+          </label>
+          <label>Delegación
+            <select name="delegacion" id="delegacionSelect">
+              <option value="">— Selecciona una delegación —</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="grid2">
+          <label>Cargo
+            <input name="cargo" maxlength="120" placeholder="Cargo o puesto">
+          </label>
+          <label>Teléfono
+            <input name="telefono" maxlength="30" inputmode="tel" placeholder="Número de teléfono">
+          </label>
+        </div>
+
+        <div class="choice-grid">
+          <fieldset>
+            <legend>Género</legend>
+            <div class="segmented">
+              <label><input type="radio" name="genero" value="F" checked><span>F</span></label>
+              <label><input type="radio" name="genero" value="M"><span>M</span></label>
+              <label><input type="radio" name="genero" value="LGBTIQ+"><span>LGBTIQ+</span></label>
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend>Sexo <small>(Hombre, Mujer o Intersex)</small></legend>
+            <div class="segmented">
+              <label><input type="radio" name="sexo" value="H" checked><span>H</span></label>
+              <label><input type="radio" name="sexo" value="M"><span>M</span></label>
+              <label><input type="radio" name="sexo" value="I"><span>I</span></label>
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend>Rango de Edad</legend>
+            <div class="segmented age">
+              <label><input type="radio" name="edad" value="18 a 35 años" checked><span>18 a 35</span></label>
+              <label><input type="radio" name="edad" value="36 a 64 años"><span>36 a 64</span></label>
+              <label><input type="radio" name="edad" value="65 años o más"><span>65 o más</span></label>
+            </div>
+          </fieldset>
+        </div>
+
+        <div class="actions right">
+          <button id="submitBtn" type="submit" class="btn primary">Agregar registro</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="card">
+      <div class="section-head">
+        <div><span class="section-num">02</span><h3>Registros recibidos</h3></div>
+        <button id="refreshPublicBtn" class="btn secondary">Actualizar</button>
+      </div>
+      <div class="table-wrap">
+        <table id="publicTable">
+          <thead><tr>
+            <th>Nº</th><th>Nombre</th><th>Cédula de Identidad</th><th>Delegación</th>
+            <th>Cargo</th><th>Teléfono</th><th>Género</th><th>Sexo</th><th>Rango de Edad</th>
+          </tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <section id="loginModal" class="modal hidden" role="dialog" aria-modal="true">
+    <div class="modal-card login-card">
+      <button id="closeLoginBtn" class="close-btn" aria-label="Cerrar">×</button>
+      <div class="login-icon">DPPP</div>
+      <h2>Acceso administrador</h2>
+      <p>Ingrese la contraseña administrativa.</p>
+      <label>Contraseña
+        <input id="adminPassword" type="password" autocomplete="current-password" placeholder="••••••••••••">
+      </label>
+      <button id="loginBtn" class="btn primary full">Ingresar</button>
+      <div id="loginMsg" class="login-msg"></div>
+    </div>
+  </section>
+
+  <section id="adminView" class="admin-shell hidden">
+    <aside class="sidebar">
+      <div class="side-brand">
+        <strong>DPPP</strong>
+        <small>Lista de Asistencia Virtual</small>
+      </div>
+      <nav>
+        <button class="nav-btn active" data-panel="adminRecords">Registros</button>
+        <button class="nav-btn" data-panel="adminExcel">Excel oficial</button>
+      </nav>
+      <button id="logoutBtn" class="side-logout">Cerrar sesión</button>
+    </aside>
+
+    <div class="admin-main">
+      <header class="admin-header">
+        <div>
+          <span class="eyebrow">PANEL ADMINISTRATIVO</span>
+          <h2>Lista de Asistencia Virtual DPPP</h2>
+          <p>Dirección de Programas Policiales Preventivos</p>
+        </div>
+        <button id="backPublicBtn" class="btn secondary">Ver registro público</button>
+      </header>
+
+      <section id="adminRecords" class="admin-panel active">
+        <div class="kpis">
+          <article><span>Total registros</span><strong id="kpiTotal">0</strong></article>
+          <article><span>Delegaciones representadas</span><strong id="kpiDelegaciones">0</strong></article>
+          <article><span>Registros filtrados</span><strong id="kpiFiltrados">0</strong></article>
+        </div>
+
+        <section class="card admin-card">
+          <div class="section-head">
+            <div><span class="section-num">01</span><h3>Filtrar por Delegación</h3></div>
+            <button id="refreshAdminBtn" class="btn secondary">Actualizar</button>
+          </div>
+          <div class="filter-row">
+            <select id="filterDelegaciones" multiple size="6"></select>
+            <div class="filter-actions">
+              <button id="selectAllFiltersBtn" class="btn ghost">Seleccionar todas</button>
+              <button id="clearFiltersBtn" class="btn ghost">Limpiar filtro</button>
+              <small>Sin selección = mostrar todas.</small>
+            </div>
+          </div>
+        </section>
+
+        <section class="card admin-card">
+          <div class="section-head">
+            <div><span class="section-num">02</span><h3>Registros y edición</h3></div>
+            <span class="hint">Puede editar directamente las celdas.</span>
+          </div>
+          <div class="table-wrap admin-table-wrap">
+            <table id="adminTable">
+              <thead><tr>
+                <th>Nº</th><th>Nombre</th><th>Cédula</th><th>Delegación</th><th>Cargo</th><th>Teléfono</th>
+                <th>Género</th><th>Sexo</th><th>Rango de Edad</th><th>Seleccionar</th>
+              </tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          <div class="danger-actions">
+            <button id="saveChangesBtn" class="btn primary">Guardar cambios</button>
+            <button id="deleteSelectedBtn" class="btn danger">Eliminar seleccionados</button>
+            <label class="confirm-check"><input id="confirmClearAll" type="checkbox"> Confirmar vaciado total</label>
+            <button id="clearAllBtn" class="btn danger-outline">Vaciar todos</button>
+          </div>
+        </section>
+      </section>
+
+      <section id="adminExcel" class="admin-panel">
+        <section class="card admin-card">
+          <div class="section-head">
+            <div><span class="section-num">03</span><h3>Datos de encabezado (Excel)</h3></div>
+            <span class="hint">El Excel respetará el filtro de delegaciones activo.</span>
+          </div>
+
+          <div class="grid2">
+            <label>Fecha
+              <input id="excelFecha" type="date">
+            </label>
+            <label>Lugar
+              <input id="excelLugar" placeholder="Lugar">
+            </label>
+            <label>Estrategia o Programa
+              <input id="excelEstrategia" value="Estrategia Sembremos Seguridad">
+            </label>
+            <label>Dirección / Delegación Policial
+              <input id="excelDelegacionHdr" value="">
+            </label>
+            <label>Hora Inicio
+              <input id="excelHoraInicio" type="time" value="09:00">
+            </label>
+            <label>Hora Finalización
+              <input id="excelHoraFin" type="time" value="12:10">
+            </label>
+            <label class="span2">Nombre de quien firma (opcional)
+              <input id="excelFirmante" value="">
+            </label>
+          </div>
+        </section>
+
+        <section class="card admin-card">
+          <div class="section-head">
+            <div><span class="section-num">04</span><h3>Anotaciones y Acuerdos</h3></div>
+          </div>
+          <div class="grid2">
+            <label>Anotaciones Generales
+              <textarea id="excelAnotaciones" rows="10" placeholder="Escribe las anotaciones generales…"></textarea>
+            </label>
+            <label>Acuerdos
+              <textarea id="excelAcuerdos" rows="10" placeholder="Escribe los acuerdos…"></textarea>
+            </label>
+          </div>
+          <div class="download-box">
+            <div>
+              <strong>Excel oficial</strong>
+              <p>Una sola hoja, con lista de asistencia, minuta, anotaciones, acuerdos y firma.</p>
+            </div>
+            <button id="generateExcelBtn" class="btn gold">Generar Excel oficial</button>
+          </div>
+        </section>
+      </section>
+    </div>
+  </section>
+
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
