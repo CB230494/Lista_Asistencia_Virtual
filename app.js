@@ -283,7 +283,7 @@ async function generateExcel(){
   const rows=filteredRows();
   const fecha=$("excelFecha").value||new Date().toISOString().slice(0,10), lugar=$("excelLugar").value, estrategia=$("excelEstrategia").value;
   const delegHdr=$("excelDelegacionHdr").value, ini=$("excelHoraInicio").value||"09:00", fin=$("excelHoraFin").value||"12:10";
-  const firmante=$("excelFirmante").value, anot=$("excelAnotaciones").value, acuerdos=$("excelAcuerdos").value;
+  const actividad=$("excelActividad").value, firmante=$("excelFirmante").value, anot=$("excelAnotaciones").value, acuerdos=$("excelAcuerdos").value;
   const btn=$("generateExcelBtn");btn.disabled=true;btn.textContent="Generando…";
   try{
     const wb=new ExcelJS.Workbook();const ws=wb.addWorksheet("Lista",{views:[{showGridLines:false,state:"frozen",ySplit:11}]});
@@ -293,13 +293,12 @@ async function generateExcel(){
     ws.getRow(1).height=8;ws.getRow(3).height=50;ws.getRow(4).height=22;ws.getRow(5).height=18;ws.getRow(6).height=14;
     const center={horizontal:"center",vertical:"middle",wrapText:true},left={horizontal:"left",vertical:"top",wrapText:true};
     const title={bold:true,size:12},h1={bold:true,size:14};const fillGrey={type:"pattern",pattern:"solid",fgColor:{argb:"FFD9D9D9"}};
-    // Logos
+    // Solo logo institucional izquierdo. Tamaño y posición ajustados para no tocar líneas.
     try{
-      const lbuf=await getImageBuffer("assets/logo_izq.png"), rbuf=await getImageBuffer("assets/logo_der.png");
-      const li=wb.addImage({buffer:lbuf,extension:"png"}),ri=wb.addImage({buffer:rbuf,extension:"png"});
-      ws.addImage(li,{tl:{col:3,row:2},ext:{width:266,height:72}});
-      ws.addImage(ri,{tl:{col:14,row:2},ext:{width:200,height:72}});
-    }catch(e){console.warn("Logos no disponibles",e)}
+      const lbuf=await getImageBuffer("assets/logo_izq.png");
+      const li=wb.addImage({buffer:lbuf,extension:"png"});
+      ws.addImage(li,{tl:{col:1.35,row:1.25},ext:{width:205,height:55}});
+    }catch(e){console.warn("Logo no disponible",e)}
     mergeSet(ws,"B3:S3","Modelo de Gestión Policial de Fuerza Pública",{font:h1,alignment:center});
     mergeSet(ws,"B4:S4","Lista de Asistencia & Minuta",{font:h1,alignment:center});
     mergeSet(ws,"B5:S5","Consecutivo:",{font:title,alignment:center});
@@ -310,7 +309,7 @@ async function generateExcel(){
     mergeSet(ws,"J7:O7",`Hora Inicio: ${ini}`,{alignment:center});mergeSet(ws,"P7:S7",`Hora Finalización: ${fin}`,{alignment:center});
     setAllBorders(ws,7,2,7,19);
     mergeSet(ws,"B8:C8","Estrategia o Programa:",{alignment:left});mergeSet(ws,"D8:I8",estrategia,{alignment:left});setAllBorders(ws,8,2,8,9);
-    mergeSet(ws,"J8:S9","ACTIVIDAD: Reunión Virtual de Seguimiento de líneas de acción, acciones estratégicas, indicadores y metas.",{alignment:left});setAllBorders(ws,8,10,9,19);
+    mergeSet(ws,"J8:S9",`ACTIVIDAD: ${actividad.trim()}`,{alignment:left});setAllBorders(ws,8,10,9,19);
     mergeSet(ws,"B9:C9","Dirección / Delegación Policial:",{alignment:left});mergeSet(ws,"D9:I9",delegHdr,{alignment:left});setAllBorders(ws,9,2,9,9);
     mergeSet(ws,"C10:E11","Nombre",{font:{bold:true},alignment:center,fill:fillGrey});
     ["F10","G10","H10","I10","S10"].forEach(c=>{ws.getCell(c).value=({F10:"Cédula de Identidad",G10:"Delegación",H10:"Cargo",I10:"Teléfono",S10:"FIRMA"})[c];ws.getCell(c).font={bold:true};ws.getCell(c).alignment=center;ws.getCell(c).fill=fillGrey});
