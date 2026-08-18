@@ -1,4 +1,5 @@
 const DELEGACIONES = [
+  'Dirección de Programas Policiales Preventivos (DPPP)',
   'D01 Carmen',
   'D02 Merced',
   'D03 Hospital',
@@ -96,8 +97,7 @@ const DELEGACIONES = [
   'D58 Sarapiqui',
   'D89 Pococí Sur',
   'D98 Pococí Norte',
-  'D93 Guacimo',
-  'Dirección de Programas Policiales Preventivos (DPPP)'
+  'D93 Guacimo'
 ];
 
 const $ = id => document.getElementById(id);
