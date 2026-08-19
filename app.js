@@ -100,6 +100,47 @@ const DELEGACIONES = [
   'D93 Guacimo'
 ];
 
+const REGIONES = [
+  'Dirección Regional Primera – San José Central',
+  'Dirección Regional Primera – San José Norte',
+  'Dirección Regional Primera – San José Sur',
+  'Dirección Regional Segunda – Alajuela',
+  'Dirección Regional Tercera – Cartago',
+  'Dirección Regional Cuarta – Heredia',
+  'Dirección Regional Quinta – Chorotega',
+  'Dirección Regional Sexta – Pacífico Central',
+  'Dirección Regional Sétima – Brunca',
+  'Dirección Regional Octava – Huétar Norte',
+  'Dirección Regional Novena – Huétar Atlántico',
+  'Dirección Regional Décima – Brunca Sur',
+  'Dirección Regional Onceava – Chorotega Norte',
+  'Dirección Regional Doceava – Caribe'
+];
+
+const INSTITUCIONES = [
+  'Policía de Control de Drogas (PCD)',
+  'Policía Penitenciaria',
+  'Policía de Tránsito',
+  'Dirección General de Migración y Extranjería',
+  'Organismo de Investigación Judicial (OIJ)',
+  'Ministerio Público',
+  'Ministerio de Justicia y Paz',
+  'Ministerio de Educación Pública (MEP)',
+  'Ministerio de Salud',
+  'Caja Costarricense de Seguro Social (CCSS)',
+  'Patronato Nacional de la Infancia (PANI)',
+  'Instituto Mixto de Ayuda Social (IMAS)',
+  'Instituto Nacional de las Mujeres (INAMU)',
+  'Instituto sobre Alcoholismo y Farmacodependencia (IAFA)',
+  'Instituto Costarricense sobre Drogas (ICD)',
+  'Comisión Nacional de Emergencias (CNE)',
+  'Cuerpo de Bomberos de Costa Rica',
+  'Cruz Roja Costarricense',
+  'Municipalidad / Gobierno Local',
+  'Policía Municipal',
+  'Otra institución'
+];
+
 const $ = id => document.getElementById(id);
 const $$ = q => [...document.querySelectorAll(q)];
 let allRows = [];
@@ -124,12 +165,19 @@ function jsonp(params){
 
 function init(){
   DELEGACIONES.forEach(d=>$("delegacionSelect").insertAdjacentHTML("beforeend",`<option>${esc(d)}</option>`));
+  REGIONES.forEach(r=>$("regionSelect").insertAdjacentHTML("beforeend",`<option>${esc(r)}</option>`));
+  INSTITUCIONES.forEach(i=>$("institucionSelect").insertAdjacentHTML("beforeend",`<option>${esc(i)}</option>`));
   $("excelFecha").value=new Date().toISOString().slice(0,10);
   bind();
   loadPublic();
 }
 function bind(){
   $("attendanceForm").addEventListener("submit",savePublic);
+  $("workplaceType").onchange=updateWorkplaceFields;
+  $("regionSelect").onchange=syncWorkplaceValue;
+  $("delegacionSelect").onchange=syncWorkplaceValue;
+  $("institucionSelect").onchange=()=>{updateOtherInstitution();syncWorkplaceValue()};
+  $("otraInstitucionInput").oninput=syncWorkplaceValue;
   $("refreshPublicBtn").onclick=loadPublic;
   $("adminAccessBtn").onclick=()=>{$("loginModal").classList.remove("hidden");$("adminPassword").focus()};
   $("closeLoginBtn").onclick=()=>$("loginModal").classList.add("hidden");
@@ -151,6 +199,28 @@ function bind(){
     $$(".admin-panel").forEach(x=>x.classList.remove("active"));$(b.dataset.panel).classList.add("active");
   });
 }
+function updateWorkplaceFields(){
+  const type=$("workplaceType").value;
+  [["regionField","region"],["delegacionField","delegacion"],["institucionField","institucion"]].forEach(([id,val])=>$(id).classList.toggle("hidden",type!==val));
+  if(type!=="institucion") $("otraInstitucionField").classList.add("hidden");
+  updateOtherInstitution();
+  syncWorkplaceValue();
+}
+function updateOtherInstitution(){
+  const show=$("workplaceType").value==="institucion" && $("institucionSelect").value==="Otra institución";
+  $("otraInstitucionField").classList.toggle("hidden",!show);
+  if(!show) $("otraInstitucionInput").value="";
+}
+function syncWorkplaceValue(){
+  const type=$("workplaceType").value;
+  let value="";
+  if(type==="region") value=$("regionSelect").value;
+  else if(type==="delegacion") value=$("delegacionSelect").value;
+  else if(type==="institucion") value=$("institucionSelect").value==="Otra institución" ? $("otraInstitucionInput").value.trim() : $("institucionSelect").value;
+  $("workplaceValue").value=value;
+  return value;
+}
+
 async function loadPublic(){
   try{
     const r=await jsonp({action:"list"});
@@ -167,13 +237,17 @@ function renderPublic(){
 async function savePublic(e){
   e.preventDefault();
   const fd=new FormData($("attendanceForm"));
+  syncWorkplaceValue();
   const data=Object.fromEntries(fd.entries());
   if(!data.nombre.trim()){notify("Ingresa al menos el nombre.",true);return}
+  if(!$("workplaceType").value){notify("Seleccione si labora en una Región, Delegación o Institución.",true);return}
+  if(!data.delegacion.trim()){notify("Seleccione o escriba la Región, Delegación o Institución donde labora.",true);return}
   const btn=$("submitBtn");btn.disabled=true;btn.textContent="Guardando…";
   try{
     const r=await jsonp({action:"add",data:JSON.stringify(data)});
     if(!r.ok)throw new Error(r.message||"No se pudo guardar.");
     $("attendanceForm").reset();
+    updateWorkplaceFields();
     document.querySelector('input[name="genero"][value="F"]').checked=true;
     document.querySelector('input[name="sexo"][value="H"]').checked=true;
     document.querySelector('input[name="edad"][value="18 a 35 años"]').checked=true;
@@ -293,15 +367,23 @@ async function generateExcel(){
     ws.getRow(1).height=8;ws.getRow(3).height=50;ws.getRow(4).height=22;ws.getRow(5).height=18;ws.getRow(6).height=14;
     const center={horizontal:"center",vertical:"middle",wrapText:true},left={horizontal:"left",vertical:"top",wrapText:true};
     const title={bold:true,size:12},h1={bold:true,size:14};const fillGrey={type:"pattern",pattern:"solid",fgColor:{argb:"FFD9D9D9"}};
-    // Solo logo institucional izquierdo. Tamaño y posición ajustados para no tocar líneas.
+    // Distribución de logos basada en la referencia suministrada:
+    // izquierda: emblema MSP + Fuerza Pública; derecha: Nodos Demandantes + Sembremos Seguridad.
+    // El logo horizontal anterior del Ministerio ya no se utiliza.
     try{
-      const lbuf=await getImageBuffer("assets/logo_izq.png");
-      const li=wb.addImage({buffer:lbuf,extension:"png"});
-      ws.addImage(li,{tl:{col:1.35,row:1.25},ext:{width:205,height:55}});
-    }catch(e){console.warn("Logo no disponible",e)}
-    mergeSet(ws,"B3:S3","Modelo de Gestión Policial de Fuerza Pública",{font:h1,alignment:center});
-    mergeSet(ws,"B4:S4","Lista de Asistencia & Minuta",{font:h1,alignment:center});
-    mergeSet(ws,"B5:S5","Consecutivo:",{font:title,alignment:center});
+      const mspBuf=await getImageBuffer("assets/logo_msp_circular.png");
+      const fpBuf=await getImageBuffer("assets/logo_fuerza_publica.png");
+      const derBuf=await getImageBuffer("assets/logo_der.png");
+      const mspId=wb.addImage({buffer:mspBuf,extension:"png"});
+      const fpId=wb.addImage({buffer:fpBuf,extension:"png"});
+      const derId=wb.addImage({buffer:derBuf,extension:"png"});
+      ws.addImage(mspId,{tl:{col:1.20,row:.55},ext:{width:55,height:55}});
+      ws.addImage(fpId,{tl:{col:3.15,row:.55},ext:{width:48,height:55}});
+      ws.addImage(derId,{tl:{col:15.25,row:.72},ext:{width:150,height:42}});
+    }catch(e){console.warn("Logos institucionales no disponibles",e)}
+    mergeSet(ws,"F3:N3","Modelo de Gestión Policial de Fuerza Pública",{font:h1,alignment:center});
+    mergeSet(ws,"F4:N4","Lista de Asistencia & Minuta",{font:h1,alignment:center});
+    mergeSet(ws,"F5:N5","Consecutivo:",{font:title,alignment:center});
     mergeSet(ws,"B6:S6","",{fill:{type:"pattern",pattern:"solid",fgColor:{argb:"FF1F3B73"}}});setAllBorders(ws,1,2,6,19);
     const d=new Date(fecha+"T12:00:00");
     mergeSet(ws,"B7:D7",`Fecha: ${d.getDate()} ${esMonth(fecha)} ${d.getFullYear()}`,{font:title,alignment:left});
@@ -310,9 +392,9 @@ async function generateExcel(){
     setAllBorders(ws,7,2,7,19);
     mergeSet(ws,"B8:C8","Estrategia o Programa:",{alignment:left});mergeSet(ws,"D8:I8",estrategia,{alignment:left});setAllBorders(ws,8,2,8,9);
     mergeSet(ws,"J8:S9",`ACTIVIDAD: ${actividad.trim()}`,{alignment:left});setAllBorders(ws,8,10,9,19);
-    mergeSet(ws,"B9:C9","Dirección / Delegación Policial:",{alignment:left});mergeSet(ws,"D9:I9",delegHdr,{alignment:left});setAllBorders(ws,9,2,9,9);
+    mergeSet(ws,"B9:C9","Región / Delegación / Institución:",{alignment:left});mergeSet(ws,"D9:I9",delegHdr,{alignment:left});setAllBorders(ws,9,2,9,9);
     mergeSet(ws,"C10:E11","Nombre",{font:{bold:true},alignment:center,fill:fillGrey});
-    ["F10","G10","H10","I10","S10"].forEach(c=>{ws.getCell(c).value=({F10:"Cédula de Identidad",G10:"Delegación",H10:"Cargo",I10:"Teléfono",S10:"FIRMA"})[c];ws.getCell(c).font={bold:true};ws.getCell(c).alignment=center;ws.getCell(c).fill=fillGrey});
+    ["F10","G10","H10","I10","S10"].forEach(c=>{ws.getCell(c).value=({F10:"Cédula de Identidad",G10:"Región / Delegación / Institución",H10:"Cargo",I10:"Teléfono",S10:"FIRMA"})[c];ws.getCell(c).font={bold:true};ws.getCell(c).alignment=center;ws.getCell(c).fill=fillGrey});
     mergeSet(ws,"J10:L10","Género",{font:{bold:true},alignment:center,fill:fillGrey});mergeSet(ws,"M10:O10","Sexo (Hombre, Mujer o Intersex)",{font:{bold:true},alignment:center,fill:fillGrey});mergeSet(ws,"P10:R10","Rango de Edad",{font:{bold:true},alignment:center,fill:fillGrey});
     [["J11","F"],["K11","M"],["L11","LGBTIQ+"],["M11","H"],["N11","M"],["O11","I"],["P11","18 a 35 años"],["Q11","36 a 64 años"],["R11","65 años o más"]].forEach(([c,v])=>{ws.getCell(c).value=v;ws.getCell(c).font={bold:true};ws.getCell(c).alignment=center;ws.getCell(c).fill=fillGrey});
     setAllBorders(ws,10,2,11,19);
