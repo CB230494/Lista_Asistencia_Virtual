@@ -381,7 +381,7 @@ async function generateExcel(){
     ws.pageSetup={orientation:"portrait",paperSize:9,fitToPage:true,fitToWidth:1,fitToHeight:0,margins:{left:.3,right:.3,top:.4,bottom:.4,header:.1,footer:.1}};
     const widths={A:2,B:6,C:26,D:22,E:22,F:18,G:24,H:28,I:20,J:6,K:6,L:10,M:6,N:6,O:6,P:14,Q:14,R:14,S:16};
     Object.entries(widths).forEach(([k,v])=>ws.getColumn(k).width=v);
-    ws.getRow(1).height=18;ws.getRow(2).height=24;ws.getRow(3).height=54;ws.getRow(4).height=24;ws.getRow(5).height=20;ws.getRow(6).height=14;
+    ws.getRow(1).height=20;ws.getRow(2).height=28;ws.getRow(3).height=58;ws.getRow(4).height=24;ws.getRow(5).height=20;ws.getRow(6).height=14;
     const center={horizontal:"center",vertical:"middle",wrapText:true},left={horizontal:"left",vertical:"top",wrapText:true};
     const title={bold:true,size:12},h1={bold:true,size:14};const fillGrey={type:"pattern",pattern:"solid",fgColor:{argb:"FFD9D9D9"}};
     // Logos del encabezado: mismas imágenes de assets, solo tamaño y posición.
@@ -393,13 +393,13 @@ async function generateExcel(){
       const fpId=wb.addImage({buffer:fpBuf,extension:"png"});
       const derId=wb.addImage({buffer:derBuf,extension:"png"});
 
-      // Mismas imágenes de assets: más abajo y mejor proporcionadas.
-      ws.addImage(mspId,{tl:{col:1.00,row:0.55},ext:{width:76,height:75}});
-      // Fuerza Pública más grande para equilibrarlo con el emblema circular.
-      ws.addImage(fpId,{tl:{col:3.15,row:0.48},ext:{width:72,height:94}});
+      // Logos centrados dentro del bloque superior y alejados de los bordes.
+      // Izquierda: MSP y Fuerza Pública, más grandes y más abajo.
+      ws.addImage(mspId,{tl:{col:1.45,row:0.92},ext:{width:88,height:88}});
+      ws.addImage(fpId,{tl:{col:5.05,row:0.86},ext:{width:86,height:112}});
 
-      // Nodos + Sembremos: mismo archivo existente, ligeramente más abajo.
-      ws.addImage(derId,{tl:{col:14.50,row:0.58},ext:{width:205,height:74}});
+      // Derecha: mismo archivo existente, más grande y centrado en el bloque O:S.
+      ws.addImage(derId,{tl:{col:14.95,row:0.96},ext:{width:230,height:84}});
     }catch(e){console.warn("Logos institucionales no disponibles",e)}
     mergeSet(ws,"F3:N3","Modelo de Gestión Policial de Fuerza Pública",{font:h1,alignment:center});
     mergeSet(ws,"F4:N4","Lista de Asistencia & Minuta",{font:h1,alignment:center});
