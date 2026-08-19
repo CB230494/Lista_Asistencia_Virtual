@@ -118,7 +118,6 @@ const REGIONES = [
 ];
 
 const INSTITUCIONES = [
-  'Policía de Control de Drogas (PCD)',
   'Policía Penitenciaria',
   'Policía de Tránsito',
   'Dirección General de Migración y Extranjería',
@@ -395,8 +394,8 @@ async function generateExcel(){
 
       // Logos centrados dentro del bloque superior y alejados de los bordes.
       // Izquierda: MSP y Fuerza Pública, más grandes y más abajo.
-      ws.addImage(mspId,{tl:{col:1.55,row:1.10},ext:{width:98,height:98}});
-      ws.addImage(fpId,{tl:{col:4.35,row:1.02},ext:{width:96,height:124}});
+      ws.addImage(mspId,{tl:{col:2.05,row:1.10},ext:{width:98,height:98}});
+      ws.addImage(fpId,{tl:{col:4.55,row:1.02},ext:{width:96,height:124}});
 
       // Derecha: mismo archivo existente, más grande y centrado en el bloque O:S.
       ws.addImage(derId,{tl:{col:14.75,row:1.02},ext:{width:242,height:90}});
