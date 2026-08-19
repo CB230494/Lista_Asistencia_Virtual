@@ -118,6 +118,7 @@ const REGIONES = [
 ];
 
 const INSTITUCIONES = [
+  'Policía de Control de Drogas (PCD)',
   'Policía Penitenciaria',
   'Policía de Tránsito',
   'Dirección General de Migración y Extranjería',
@@ -350,6 +351,23 @@ function excelBorder(){
   return {top:{style:"thin",color:{argb:"FF000000"}},left:{style:"thin",color:{argb:"FF000000"}},bottom:{style:"thin",color:{argb:"FF000000"}},right:{style:"thin",color:{argb:"FF000000"}}};
 }
 function setAllBorders(ws,r1,c1,r2,c2){for(let r=r1;r<=r2;r++)for(let c=c1;c<=c2;c++)ws.getCell(r,c).border=excelBorder()}
+function setHeaderOuterBorder(ws,r1,c1,r2,c2){
+  // Quita todas las líneas internas del encabezado.
+  for(let r=r1;r<=r2;r++){
+    for(let c=c1;c<=c2;c++){
+      ws.getCell(r,c).border={};
+    }
+  }
+  const line={style:"thin",color:{argb:"FF000000"}};
+  for(let c=c1;c<=c2;c++){
+    ws.getCell(r1,c).border={...(ws.getCell(r1,c).border||{}),top:line};
+    ws.getCell(r2,c).border={...(ws.getCell(r2,c).border||{}),bottom:line};
+  }
+  for(let r=r1;r<=r2;r++){
+    ws.getCell(r,c1).border={...(ws.getCell(r,c1).border||{}),left:line};
+    ws.getCell(r,c2).border={...(ws.getCell(r,c2).border||{}),right:line};
+  }
+}
 function mergeSet(ws,range,value,opts={}){ws.mergeCells(range);const c=ws.getCell(range.split(":")[0]);c.value=value;if(opts.font)c.font=opts.font;if(opts.alignment)c.alignment=opts.alignment;if(opts.fill)c.fill=opts.fill}
 function esMonth(dateStr){return ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"][new Date(dateStr+"T12:00:00").getMonth()]}
 async function generateExcel(){
@@ -363,7 +381,7 @@ async function generateExcel(){
     ws.pageSetup={orientation:"portrait",paperSize:9,fitToPage:true,fitToWidth:1,fitToHeight:0,margins:{left:.3,right:.3,top:.4,bottom:.4,header:.1,footer:.1}};
     const widths={A:2,B:6,C:26,D:22,E:22,F:18,G:24,H:28,I:20,J:6,K:6,L:10,M:6,N:6,O:6,P:14,Q:14,R:14,S:16};
     Object.entries(widths).forEach(([k,v])=>ws.getColumn(k).width=v);
-    ws.getRow(1).height=16;ws.getRow(2).height=22;ws.getRow(3).height=50;ws.getRow(4).height=24;ws.getRow(5).height=20;ws.getRow(6).height=14;
+    ws.getRow(1).height=18;ws.getRow(2).height=24;ws.getRow(3).height=54;ws.getRow(4).height=24;ws.getRow(5).height=20;ws.getRow(6).height=14;
     const center={horizontal:"center",vertical:"middle",wrapText:true},left={horizontal:"left",vertical:"top",wrapText:true};
     const title={bold:true,size:12},h1={bold:true,size:14};const fillGrey={type:"pattern",pattern:"solid",fgColor:{argb:"FFD9D9D9"}};
     // Logos del encabezado: mismas imágenes de assets, solo tamaño y posición.
@@ -375,17 +393,20 @@ async function generateExcel(){
       const fpId=wb.addImage({buffer:fpBuf,extension:"png"});
       const derId=wb.addImage({buffer:derBuf,extension:"png"});
 
-      // Bloque izquierdo: ambos logos grandes, juntos y centrados en B:E.
-      ws.addImage(mspId,{tl:{col:1.05,row:0.20},ext:{width:76,height:75}});
-      ws.addImage(fpId,{tl:{col:3.25,row:0.10},ext:{width:58,height:76}});
+      // Mismas imágenes de assets: más abajo y mejor proporcionadas.
+      ws.addImage(mspId,{tl:{col:1.00,row:0.55},ext:{width:76,height:75}});
+      // Fuerza Pública más grande para equilibrarlo con el emblema circular.
+      ws.addImage(fpId,{tl:{col:3.15,row:0.48},ext:{width:72,height:94}});
 
-      // Bloque derecho: imagen existente de Nodos + Sembremos, más grande y centrada.
-      ws.addImage(derId,{tl:{col:14.55,row:0.22},ext:{width:205,height:74}});
+      // Nodos + Sembremos: mismo archivo existente, ligeramente más abajo.
+      ws.addImage(derId,{tl:{col:14.50,row:0.58},ext:{width:205,height:74}});
     }catch(e){console.warn("Logos institucionales no disponibles",e)}
     mergeSet(ws,"F3:N3","Modelo de Gestión Policial de Fuerza Pública",{font:h1,alignment:center});
     mergeSet(ws,"F4:N4","Lista de Asistencia & Minuta",{font:h1,alignment:center});
     mergeSet(ws,"F5:N5","Consecutivo:",{font:title,alignment:center});
-    mergeSet(ws,"B6:S6","",{fill:{type:"pattern",pattern:"solid",fgColor:{argb:"FF1F3B73"}}});setAllBorders(ws,1,2,6,19);
+    // Encabezado limpio: blanco, sin cuadrícula interna; solo marco exterior B1:S5.
+    setHeaderOuterBorder(ws,1,2,5,19);
+    mergeSet(ws,"B6:S6","",{fill:{type:"pattern",pattern:"solid",fgColor:{argb:"FF1F3B73"}}});
     const d=new Date(fecha+"T12:00:00");
     mergeSet(ws,"B7:D7",`Fecha: ${d.getDate()} ${esMonth(fecha)} ${d.getFullYear()}`,{font:title,alignment:left});
     mergeSet(ws,"E7:I7",lugar?`Lugar:  ${lugar}`:"Lugar: ",{font:title,alignment:left});
