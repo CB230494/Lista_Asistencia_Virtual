@@ -39,18 +39,53 @@
       </div>
 
       <form id="attendanceForm" novalidate>
-        <div class="grid3">
+        <div class="grid2">
           <label>Nombre <span>*</span>
             <input name="nombre" maxlength="140" required placeholder="Nombre completo">
           </label>
           <label>Cédula de Identidad
             <input name="cedula" maxlength="40" placeholder="Número de identificación">
           </label>
-          <label>Delegación
-            <select name="delegacion" id="delegacionSelect">
-              <option value="">— Selecciona una delegación —</option>
-            </select>
-          </label>
+        </div>
+
+        <div class="workplace-box">
+          <div class="workplace-intro">
+            <strong>Región / Delegación / Institución</strong>
+            <span>Seleccione dónde labora directamente. Solo se mostrará el campo que corresponda.</span>
+          </div>
+          <div class="grid2 workplace-grid">
+            <label>¿Dónde labora? <span>*</span>
+              <select id="workplaceType" required>
+                <option value="">— Seleccione una opción —</option>
+                <option value="region">Región</option>
+                <option value="delegacion">Delegación</option>
+                <option value="institucion">Institución</option>
+              </select>
+            </label>
+
+            <label id="regionField" class="conditional-field hidden">Región <span>*</span>
+              <select id="regionSelect">
+                <option value="">— Seleccione una región —</option>
+              </select>
+            </label>
+
+            <label id="delegacionField" class="conditional-field hidden">Delegación <span>*</span>
+              <select id="delegacionSelect">
+                <option value="">— Seleccione una delegación —</option>
+              </select>
+            </label>
+
+            <label id="institucionField" class="conditional-field hidden">Institución <span>*</span>
+              <select id="institucionSelect">
+                <option value="">— Seleccione una institución —</option>
+              </select>
+            </label>
+
+            <label id="otraInstitucionField" class="conditional-field hidden">Otra institución <span>*</span>
+              <input id="otraInstitucionInput" maxlength="140" placeholder="Escriba el nombre de la institución">
+            </label>
+          </div>
+          <input type="hidden" name="delegacion" id="workplaceValue">
         </div>
 
         <div class="grid2">
@@ -105,7 +140,7 @@
       <div class="table-wrap">
         <table id="publicTable">
           <thead><tr>
-            <th>Nº</th><th>Nombre</th><th>Cédula de Identidad</th><th>Delegación</th>
+            <th>Nº</th><th>Nombre</th><th>Cédula de Identidad</th><th>Región / Delegación / Institución</th>
             <th>Cargo</th><th>Teléfono</th><th>Género</th><th>Sexo</th><th>Rango de Edad</th>
           </tr></thead>
           <tbody></tbody>
@@ -154,13 +189,13 @@
       <section id="adminRecords" class="admin-panel active">
         <div class="kpis">
           <article><span>Total registros</span><strong id="kpiTotal">0</strong></article>
-          <article><span>Delegaciones representadas</span><strong id="kpiDelegaciones">0</strong></article>
+          <article><span>Regiones / Delegaciones / Instituciones</span><strong id="kpiDelegaciones">0</strong></article>
           <article><span>Registros filtrados</span><strong id="kpiFiltrados">0</strong></article>
         </div>
 
         <section class="card admin-card">
           <div class="section-head">
-            <div><span class="section-num">01</span><h3>Filtrar por Delegación</h3></div>
+            <div><span class="section-num">01</span><h3>Filtrar por Región / Delegación / Institución</h3></div>
             <button id="refreshAdminBtn" class="btn secondary">Actualizar</button>
           </div>
           <div class="filter-row">
@@ -181,7 +216,7 @@
           <div class="table-wrap admin-table-wrap">
             <table id="adminTable">
               <thead><tr>
-                <th>Nº</th><th>Nombre</th><th>Cédula</th><th>Delegación</th><th>Cargo</th><th>Teléfono</th>
+                <th>Nº</th><th>Nombre</th><th>Cédula</th><th>Región / Delegación / Institución</th><th>Cargo</th><th>Teléfono</th>
                 <th>Género</th><th>Sexo</th><th>Rango de Edad</th><th>Seleccionar</th>
               </tr></thead>
               <tbody></tbody>
@@ -200,7 +235,7 @@
         <section class="card admin-card">
           <div class="section-head">
             <div><span class="section-num">03</span><h3>Datos de encabezado (Excel)</h3></div>
-            <span class="hint">El Excel respetará el filtro de delegaciones activo.</span>
+            <span class="hint">El Excel respetará el filtro de Región / Delegación / Institución activo.</span>
           </div>
 
           <div class="grid2">
@@ -213,7 +248,7 @@
             <label>Estrategia o Programa
               <input id="excelEstrategia" value="Dirección de Programas Policiales Preventivos">
             </label>
-            <label>Dirección / Delegación Policial
+            <label>Región / Delegación / Institución
               <input id="excelDelegacionHdr" value="">
             </label>
             <label>Hora Inicio
