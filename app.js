@@ -364,12 +364,10 @@ async function generateExcel(){
     ws.pageSetup={orientation:"portrait",paperSize:9,fitToPage:true,fitToWidth:1,fitToHeight:0,margins:{left:.3,right:.3,top:.4,bottom:.4,header:.1,footer:.1}};
     const widths={A:2,B:6,C:26,D:22,E:22,F:18,G:24,H:28,I:20,J:6,K:6,L:10,M:6,N:6,O:6,P:14,Q:14,R:14,S:16};
     Object.entries(widths).forEach(([k,v])=>ws.getColumn(k).width=v);
-    ws.getRow(1).height=8;ws.getRow(3).height=50;ws.getRow(4).height=22;ws.getRow(5).height=18;ws.getRow(6).height=14;
+    ws.getRow(1).height=10;ws.getRow(2).height=16;ws.getRow(3).height=52;ws.getRow(4).height=24;ws.getRow(5).height=20;ws.getRow(6).height=14;
     const center={horizontal:"center",vertical:"middle",wrapText:true},left={horizontal:"left",vertical:"top",wrapText:true};
     const title={bold:true,size:12},h1={bold:true,size:14};const fillGrey={type:"pattern",pattern:"solid",fgColor:{argb:"FFD9D9D9"}};
-    // Distribución de logos basada en la referencia suministrada:
-    // izquierda: emblema MSP + Fuerza Pública; derecha: Nodos Demandantes + Sembremos Seguridad.
-    // El logo horizontal anterior del Ministerio ya no se utiliza.
+    // Ajuste de tamaño y acomodo de logos usando las mismas imágenes del proyecto.
     try{
       const mspBuf=await getImageBuffer("assets/logo_msp_circular.png");
       const fpBuf=await getImageBuffer("assets/logo_fuerza_publica.png");
@@ -377,9 +375,11 @@ async function generateExcel(){
       const mspId=wb.addImage({buffer:mspBuf,extension:"png"});
       const fpId=wb.addImage({buffer:fpBuf,extension:"png"});
       const derId=wb.addImage({buffer:derBuf,extension:"png"});
-      ws.addImage(mspId,{tl:{col:1.20,row:.55},ext:{width:55,height:55}});
-      ws.addImage(fpId,{tl:{col:3.15,row:.55},ext:{width:48,height:55}});
-      ws.addImage(derId,{tl:{col:15.25,row:.72},ext:{width:150,height:42}});
+      // Izquierda: más grandes y alineados verticalmente.
+      ws.addImage(mspId,{tl:{col:0.65,row:0.55},ext:{width:58,height:58}});
+      ws.addImage(fpId,{tl:{col:4.00,row:0.60},ext:{width:46,height:60}});
+      // Derecha: mismo archivo, pero más grande y mejor centrado.
+      ws.addImage(derId,{tl:{col:15.05,row:0.55},ext:{width:170,height:48}});
     }catch(e){console.warn("Logos institucionales no disponibles",e)}
     mergeSet(ws,"F3:N3","Modelo de Gestión Policial de Fuerza Pública",{font:h1,alignment:center});
     mergeSet(ws,"F4:N4","Lista de Asistencia & Minuta",{font:h1,alignment:center});
