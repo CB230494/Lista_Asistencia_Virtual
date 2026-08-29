@@ -1,5 +1,4 @@
 const DELEGACIONES = [
-  'Dirección de Programas Policiales Preventivos (DPPP)',
   'D01 Carmen',
   'D02 Merced',
   'D03 Hospital',
@@ -101,6 +100,7 @@ const DELEGACIONES = [
 ];
 
 const REGIONES = [
+  'Dirección de Programas Policiales Preventivos (DPPP)',
   'Dirección Regional Primera – San José Central',
   'Dirección Regional Primera – San José Norte',
   'Dirección Regional Primera – San José Sur',
